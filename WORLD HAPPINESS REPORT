@@ -1,0 +1,15 @@
+SELECT *
+ FROM `sacred-pipe-454410-p7.world_happiness_report.2015_data` 
+ ORDER BY `Health _Life Expectancy_` DESC
+ LIMIT 5;
+
+SELECT *
+ FROM `sacred-pipe-454410-p7.world_happiness_report.2015_data` 
+ ORDER BY `Economy _GDP per Capita_` DESC
+ LIMIT 5;
+
+SELECT *
+ FROM `sacred-pipe-454410-p7.world_happiness_report.2015_data` 
+ ORDER BY `Happiness Rank` ASC
+ LIMIT 5;
+  
