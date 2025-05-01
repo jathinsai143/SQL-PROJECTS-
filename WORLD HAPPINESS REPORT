@@ -1,3 +1,14 @@
+Basic query structures followed 
+
+SELECT 
+  (columns to analyse )
+FROM 
+  databasename.projectname.tablename
+ORDER BY 
+  Used to sort data in Ascending (ASC) & Descending (DESC) 
+
+Queries used in bigquery platform by google 
+
 SELECT *
  FROM `sacred-pipe-454410-p7.world_happiness_report.2015_data` 
  ORDER BY `Health _Life Expectancy_` DESC
@@ -13,3 +24,13 @@ SELECT *
  ORDER BY `Happiness Rank` ASC
  LIMIT 5;
   
+These queries are used to analyse data about Top 5 Countries with highest economy , Health life expectancy , Happiness Rank 
+
+SELECT 
+  DISTINCT (Country) 
+FROM 
+ `sacred-pipe-454410-p7.world_happiness_report.2015_data`
+
+This query deletes all duplicates if exists any
+
+
