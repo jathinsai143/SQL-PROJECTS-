@@ -1,0 +1,239 @@
+DATA SOURCE: https://www.kaggle.com/datasets/devarajv88/target-dataset
+
+TOOLS USED: EXCEL, SQL, TABLEAU 
+
+STEPS IN SOLVING THIS CASE STUDY : 
+
+
+Understanding the data : 
+
+The data is taken from a public source, Kaggle 
+The dataset contains 8 CSV files named: Customers.csv, Sellers.csv, Order_Items.csv, Geolocation.csv, Payments.csv, Orders.csv, Products.csv
+The data is perfectly suitable for this project to analyse sales trends over time, sales distribution across product categories, top-performing products, and customer segmentation by total spend
+
+Data Analysis : 
+	
+ASK: 
+By this project, I am trying to analyse sales performance for the TARGET company and present my insights in a comprehensive dashboard
+
+PREPARE : 
+Load the datasets to Google Sheets and BigQuery (SQL)
+Prepared a copy of the dataset for further reference 
+Saved the datasets by using naming conventions in a separate file folder for easy access 
+
+
+PROCESS : 
+
+DATA CLEANING : 
+
+I used Google Sheets for data cleaning by following these steps 
+
+Removed duplicates & trimmed white spaces: click on the DATA tab in the ribbon and select data cleaning. By this, we can remove any duplicates and white spaces 
+
+Deleting Blank Cells: As this is a public dataset, deleting blank cells with no information is best, or else we can replace them with 0 for smooth analysis 
+
+Formatting: Made sure that the formatting in the columns of state and shipping date  is correct across all spreadsheets 
+
+Spelling Mistakes: Checked for spelling mistakes and corrected them 
+
+COMBINED MULTIPLE DATASETS: By using the concept of primary key and foreign key, i combined multiple datasets into one dataset for fast analysis 
+
+SQL: I used JOINS to combine multiple datasets 
+
+If we take a look at our datasets 
+
+SELLERS : seller_id , seller_zipcode ,seller_city , seller_state 
+PRODUCTS : product_id , product category , product_name_length , product_description_length , product_photos_qty , product_weight , product_length , product_height , product_width 
+PAYMENTS : order_id , payment_sequential , payment_type , payment_installments , payment_value
+ORDERS : order_id , customer_id , order_status , order_purchase_timestamp , order_approved_at , order_delivered_carrier_date , order_delivered_customer_date , order_estimated_delivery_date 
+ORDER ITEMS : order_id , order_item_id , product_id , seller_id , shipping_limit_date , price , freight_value 
+GEO LOCATION : geolocation_zipcode , geolocation_lat , geolocation_lon , geolocation_city , geolocation_state 
+CUSTOMERS : Customer_id , customer_unique_id , customer_zipcode , customer_city , customer_state
+
+Primary Keys (PK) and Foreign Keys (FK):
+SELLERS:
+PK: seller_id
+FK: seller_zipcode (references GEO LOCATION. geolocation_zipcode & CUSTOMERS.customer_zipcode)
+PRODUCTS:
+PK: product_id
+PAYMENTS:
+PK: order_id, payment_sequential (composite primary key)
+FK: order_id (references ORDERS.order_id ORDER_ITEMS.order_id)
+ORDERS:
+PK: order_id
+FK: customer_id (references CUSTOMERS.customer_id)
+ORDER ITEMS:
+PK: order_id, order_item_id (composite primary key)
+FK: order_id (references ORDERS.order_id , PAYMENTS.order_id)
+FK: product_id (references PRODUCTS.product_id)
+FK: seller_id (references SELLERS.seller_id)
+GEO LOCATION:
+PK: geolocation_zipcode
+CUSTOMERS:
+PK: customer_id
+FK: customer_zipcode (references GEO LOCATION. geolocation_zipcode SELLERS.sellers_zipcode)
+
+EXPLANATION: 
+
+SELECT: The select clause is used to define what columns to retrieve 
+FROM: The FROM clause defines from where we are pulling the data 
+INNER JOIN: The Inner  join combines both tables based on primary keys and gives us the matching values from both tables 
+LEFT JOIN: left join returns all values from the first mentioned table and matching values from the second table; if there are none, it will return null values 
+LIMIT is used to limit the dataset (just like a sample)
+* - defines to retrieve all columns in the table and is used with the select clause
+PRIMARY KEY - is an unique identifier in table and can be a foreign key in another table 
+FOREIGN KEY - unique values from another column in a table 
+
+o.* -  o is used after the alias of the orders table 
+c.* - c is used after the alias of the customers table 
+oi.* - oi is used after the alias of the order_items table 
+p.* - p is used after the alias of the products table 
+s.* - s is used after the alias of the sellers table
+py.* - py is used after the alias of the payments table 
+gl_c* - gl_c is used after the alias of the geolocation of the customer 
+gl_s.* - gl_s is used after the alias of the geolocation of sellers 
+
+ANALYSE : 
+
+SQL is used for data analysis 
+
+DATA AGGREGATION : 
+
+TO FIND TOTAL SALES AND AVERAGE SALES  BY MONTH 
+SELECT
+   FORMAT_DATETIME('%Y-%m', o.order_purchase_timestamp) AS sale_month,
+   SUM(py.payment_value) AS total_sales,
+   AVG(py.payment_value) AS average_sales
+FROM
+   `sacred-pipe-454410-p7.Targat_sales_analysis.orders` o
+INNER JOIN
+   `sacred-pipe-454410-p7.Targat_sales_analysis.payments` py ON o.order_id = py.order_id
+GROUP BY
+   sale_month
+ORDER BY
+   Sale_month;
+
+
+To find the number of orders per region, I combined the orders and customers tables by using customer_id and an inner join 
+SELECT
+ o.* , -- Using 'ol' as an ALIAS for orders table
+ c.* , -- Using 'c' as an ALIAS for customers table
+FROM `sacred-pipe-454410-p7.Targat_sales_analysis.orders` o -- Assigning the alias 'o'
+INNER JOIN `sacred-pipe-454410-p7.Targat_sales_analysis.customers` AS c ON o.customer_id = c.customer_id 
+
+QUERY : 
+SELECT
+   customer_city,
+   customer_state,
+   COUNT(DISTINCT order_id) AS num_of_orders
+FROM
+   `sacred-pipe-454410-p7.Targat_sales_analysis.orders per region`
+GROUP BY
+   customer_city,
+   customer_state
+ORDER BY
+   num_of_orders DESC;
+
+To find orders by product category, I combined the order items table with the products table using the product ID and an INNER JOIN 
+
+
+SELECT
+ p.* , -- Using 'p' as an ALIAS for products table
+ oi.* -- Using 'oi' as an ALIAS for order_items table
+FROM `sacred-pipe-454410-p7.Targat_sales_analysis.products`  p -- Assigning the ALIAS 'p'
+INNER JOIN `sacred-pipe-454410-p7.Targat_sales_analysis.order_items`  AS oi ON p.product_id = oi.product_id
+
+
+QUERY : 
+SELECT
+   `product category`,
+   COUNT(`product category`) AS num_of_orders_per_category
+FROM
+   `sacred-pipe-454410-p7.Targat_sales_analysis.product category`
+GROUP BY
+   `product category`
+ORDER BY
+   num_of_orders_per_category DESC; -- Optional: Order by the count
+
+
+TO find the top 5 performing products, I joined the orders table with payments using an INNER JOIN on order ID, and the orders table with the order items table using an INNER JOIN on order ID, and the order items table with the products table using an INNER JOIN on product ID 
+
+
+  SELECT
+   o.*,
+   py.*,
+   oi.*,
+   pr.*
+FROM
+   `sacred-pipe-454410-p7.Targat_sales_analysis.orders` o
+INNER JOIN
+   `sacred-pipe-454410-p7.Targat_sales_analysis.payments` py ON o.order_id = py.order_id
+INNER JOIN
+   `sacred-pipe-454410-p7.Targat_sales_analysis.order_items` oi ON o.order_id = oi.order_id
+INNER JOIN
+   `sacred-pipe-454410-p7.Targat_sales_analysis.products` pr ON oi.product_id = pr.product_id
+
+
+TOP PERFORMING PRODUCTS : 
+
+
+SELECT
+product_id,
+`product category`,
+SUM (payment_value) AS total_sales ,
+
+
+FROM `sacred-pipe-454410-p7.Targat_sales_analysis.products top performing`
+
+
+GROUP BY product_id, `product category`
+
+
+ORDER BY total_sales DESC
+
+
+LIMIT 5;
+
+TO find the highest sales by month, I joined the orders and payments tables using an INNER JOIN by order ID 
+
+
+SELECT
+   FORMAT_DATETIME('%Y-%m', o.order_purchase_timestamp) AS sale_month,
+   SUM(py.payment_value) AS monthly_sales
+FROM
+   `sacred-pipe-454410-p7.Targat_sales_analysis.orders` o
+INNER JOIN
+   `sacred-pipe-454410-p7.Targat_sales_analysis.payments` py ON o.order_id = py.order_id
+GROUP BY
+   sale_month
+ORDER BY
+   monthly_sales DESC
+LIMIT 1;
+
+
+TO find the most profitable customers by total spend, I combined the customers and orders tables using an INNER JOIN by customer ID and the orders and payments tables using an INNER JOIN by order ID 
+
+
+SELECT
+o.* , -- USING as an ALIAS for the orders table
+c.*,-- USING as an ALIAS for the customers table
+p.* -- USING as an ALIAS for the payments table
+FROM `sacred-pipe-454410-p7.Targat_sales_analysis.orders`  o
+INNER JOIN `sacred-pipe-454410-p7.Targat_sales_analysis.customers` c ON o.customer_id = c.customer_id
+INNER JOIN `sacred-pipe-454410-p7.Targat_sales_analysis.payments` p ON o.order_id = p.order_id
+
+
+Most profitable customers : 
+
+
+SELECT
+customer_unique_id ,
+customer_city ,
+customer_state ,
+SUM (payment_value) AS total_spend
+FROM `sacred-pipe-454410-p7.Targat_sales_analysis.most profitable customers`
+GROUP BY customer_unique_id , customer_city , customer_state
+ORDER BY total_spend DESC
+LIMIT 5;
+
+
